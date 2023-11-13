@@ -128,7 +128,7 @@ INSERT INTO ATENDIMENTO (url_relatorio, data_atend, id_func, id_cli) VALUES
 ('http://example.com/relatorio7', '07/11/2023', 7, 7),
 ('http://example.com/relatorio8', '08/11/2023', 7, 8),
 ('http://example.com/relatorio9', '09/11/2023', 8, 9),
-('http://example.com/relatorio10', '10/11/2023', 10, 10);
+('http://example.com/relatorio10', '10/11/2023', 10, 7);
 
 SELECT * FROM ATENDIMENTO;
 
@@ -181,3 +181,41 @@ SELECT S.TIPO
 	JOIN ATENDSERVICO ATS ON S.ID_SERVICO = ATS.ID_SERVICO
 	JOIN ATENDIMENTO A ON ATS.ID_ATENDIMENTO= A.ID_ATENDIMENTO
 	WHERE DATA_ATEND = '07/11/2023';
+
+-- 1 consulta com left/right/full outer join na cláusula FROM
+--Consulta que retorna todos os clientes independente de ter atendimento ou não
+SELECT NOME, A.DATA_ATEND
+	FROM CLIENTE C
+	LEFT JOIN ATENDIMENTO A
+	ON C.ID_CLIENTE = A.ID_CLI;
+
+-- 2 consultas usando Group By (e possivelmente o having)
+--Consulta que retorna a quantidade de cada tipo de serviço.
+SELECT S.TIPO, COUNT(*) AS "Quantidade"
+	FROM FUNCIONARIO F
+	JOIN ATENDIMENTO A
+	ON F.ID_FUNCIONARIO = A.ID_FUNC
+	JOIN ATENDSERVICO ATS ON ATS.ID_ATENDIMENTO = A.ID_ATENDIMENTO
+	JOIN SERVICO S ON ATS.ID_SERVICO = S.ID_SERVICO
+	GROUP BY S.TIPO;
+--Consulta que retorna a quantidade de funcionários para cada cargo na empresa.
+SELECT CARGO, COUNT(*) AS "Quantidade"
+	FROM FUNCIONARIO
+	GROUP BY CARGO;
+
+--1 consulta usando alguma operação de conjunto (union, except ou intersect)
+--Consulta que retorna o cliente que não está na tabela de atendimento.
+SELECT C.NOME
+	FROM CLIENTE C
+	EXCEPT
+	SELECT C.NOME
+	FROM CLIENTE C 
+	JOIN ATENDIMENTO A
+	ON C.ID_CLIENTE = A.ID_CLI;
+
+
+
+
+
+
+
