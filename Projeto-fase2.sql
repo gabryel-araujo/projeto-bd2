@@ -8,7 +8,6 @@ CREATE TABLE FUNCIONARIO (
 	CONSTRAINT CK_CARGO CHECK (cargo IN  ('Programador', 'Técnico', 'Gestão'))
 );
 
-
 --CRIAÇÃO DA TABELA CLIENTE
 CREATE TABLE CLIENTE (
 	id_cliente SERIAL NOT NULL,
