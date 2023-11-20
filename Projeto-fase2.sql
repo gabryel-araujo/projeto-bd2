@@ -99,7 +99,7 @@ SELECT * FROM CLIENTE;
 --INSERÇÕES NA TABELA DE ENDEREÇOS
 --PRIMEIRA INSERÇÃO PARA TESTAR OS VALORES DEFAULT
 INSERT INTO ENDERECO (id_cliente, rua, complemento, bairro)
-VALUES (1,'Rua José da Silva','Apto 3001','Cabo Branco'),
+VALUES (1,'Rua José da Silva','Apto 3001','Cabo Branco');
 
 --INSERT DO RESTANTE DOS ENDEREÇOS
 INSERT INTO ENDERECO (id_cliente, rua, numero, complemento, bairro, estado, cidade) 
@@ -118,16 +118,16 @@ SELECT * FROM ENDERECO;
 
 --INSERÇÃO DA TABELA DE ATENDIMENTOS
 INSERT INTO ATENDIMENTO (url_relatorio, data_atend, id_func, id_cli) VALUES 
-('http://example.com/relatorio1', '01/11/2023', 1, 1),
-('http://example.com/relatorio2', '02/11/2023', 1, 2),
+('http://example.com/relatorio1', '01/08/2023', 1, 1),
+('http://example.com/relatorio2', '02/05/2023', 1, 2),
 ('http://example.com/relatorio3', '03/11/2023', 2, 3),
 ('http://example.com/relatorio4', '04/11/2023', 3, 4),
 ('http://example.com/relatorio5', '05/11/2023', 4, 5),
-('http://example.com/relatorio6', '06/11/2023', 6, 6),
-('http://example.com/relatorio7', '07/11/2023', 7, 7),
-('http://example.com/relatorio8', '08/11/2023', 7, 8),
-('http://example.com/relatorio9', '09/11/2023', 8, 9),
-('http://example.com/relatorio10', '10/11/2023', 10, 10);
+('http://example.com/relatorio6', '06/01/2023', 6, 6),
+('http://example.com/relatorio7', '07/01/2023', 7, 7),
+('http://example.com/relatorio8', '08/12/2023', 7, 8),
+('http://example.com/relatorio9', '09/12/2023', 8, 9),
+('http://example.com/relatorio10', '10/09/2023', 10, 7);
 
 SELECT * FROM ATENDIMENTO;
 
@@ -180,3 +180,153 @@ SELECT S.TIPO
 	JOIN ATENDSERVICO ATS ON S.ID_SERVICO = ATS.ID_SERVICO
 	JOIN ATENDIMENTO A ON ATS.ID_ATENDIMENTO= A.ID_ATENDIMENTO
 	WHERE DATA_ATEND = '07/11/2023';
+
+-- 1 consulta com left/right/full outer join na cláusula FROM
+--Consulta que retorna todos os clientes independente de ter atendimento ou não
+SELECT NOME, A.DATA_ATEND
+	FROM CLIENTE C
+	LEFT JOIN ATENDIMENTO A
+	ON C.ID_CLIENTE = A.ID_CLI;
+
+-- 2 consultas usando Group By (e possivelmente o having)
+--Consulta que retorna a quantidade de cada tipo de serviço.
+SELECT S.TIPO, COUNT(*) AS "Quantidade"
+	FROM FUNCIONARIO F
+	JOIN ATENDIMENTO A
+	ON F.ID_FUNCIONARIO = A.ID_FUNC
+	JOIN ATENDSERVICO ATS ON ATS.ID_ATENDIMENTO = A.ID_ATENDIMENTO
+	JOIN SERVICO S ON ATS.ID_SERVICO = S.ID_SERVICO
+	GROUP BY S.TIPO;
+--Consulta que retorna a quantidade de funcionários para cada cargo na empresa.
+SELECT CARGO, COUNT(*) AS "Quantidade"
+	FROM FUNCIONARIO
+	GROUP BY CARGO;
+
+--1 consulta usando alguma operação de conjunto (union, except ou intersect)
+--Consulta que retorna o cliente que não está na tabela de atendimento.
+SELECT C.NOME
+	FROM CLIENTE C
+	EXCEPT
+	SELECT C.NOME
+	FROM CLIENTE C 
+	JOIN ATENDIMENTO A
+	ON C.ID_CLIENTE = A.ID_CLI;
+
+--2 consultas que usem subqueries
+--Consulta que retorna todos os atendimentos do funcionário cujo nome é Gabryel Araújo
+SELECT * FROM ATENDIMENTO
+WHERE ID_FUNC IN (
+	SELECT ID_FUNCIONARIO
+		FROM FUNCIONARIO
+		WHERE NOME LIKE 'Gabryel Araújo'
+);
+
+--Consulta que retorna os id's dos servicos realizados no mês de dezembro
+SELECT ID_SERVICO 
+FROM ATENDSERVICO
+WHERE ID_ATENDIMENTO IN (
+    SELECT ID_ATENDIMENTO 
+    FROM ATENDIMENTO
+    WHERE EXTRACT(MONTH FROM DATA_ATEND) = 12
+);
+
+--view de funcionarios programadores que permite inserção
+CREATE OR REPLACE VIEW FUNC_PROG
+	(ID_FUNCIONARIO, NOME, CARGO, EMAIL ) AS
+	SELECT * FROM FUNCIONARIO
+	WHERE CARGO LIKE 'Programador'
+	WITH CHECK OPTION;
+
+SELECT * FROM FUNC_PROG;
+
+--insert barrado pelo CHECKOPTION
+INSERT INTO FUNC_PROG (ID_FUNCIONARIO, NOME, CARGO, EMAIL)
+VALUES (default, 'João', 'Analista', 'joao@email.com');
+
+--insert aprovado pelo CHECKOPTION
+INSERT INTO FUNC_PROG (ID_FUNCIONARIO, NOME, CARGO, EMAIL)
+VALUES (default, 'João', 'Programador', 'joao@email.com');
+SELECT * FROM FUNC_PROG;
+SELECT * FROM FUNCIONARIO;
+
+--VIEW ROBUSTA 01
+CREATE OR REPLACE VIEW VISITAS_FUNC AS
+	SELECT F.NOME, F.CARGO, A.DATA_ATEND, S.TIPO
+	FROM ATENDIMENTO A
+	JOIN FUNCIONARIO F
+	ON A.ID_FUNC = F.ID_FUNCIONARIO
+	JOIN ATENDSERVICO ATS
+	ON ATS.ID_ATENDIMENTO = A.ID_ATENDIMENTO
+	JOIN SERVICO S
+	ON S.ID_SERVICO = ATS.ID_SERVICO
+ORDER BY NOME;
+
+SELECT * FROM VISITAS_FUNC;
+
+--VIEW ROBUSTA 02
+CREATE OR REPLACE VIEW VISITAS_CLI AS
+	SELECT C.NOME AS "Cliente", F.NOME AS "Funcionário", S.TIPO as "Serviço"
+	FROM ATENDIMENTO A
+	JOIN CLIENTE C
+	ON A.ID_CLI = C.ID_CLIENTE
+	JOIN FUNCIONARIO F
+	ON A.ID_FUNC = F.ID_FUNCIONARIO
+	JOIN ATENDSERVICO ATS
+	ON ATS.ID_ATENDIMENTO = A.ID_ATENDIMENTO
+	JOIN SERVICO S
+	ON ATS.ID_SERVICO = S.ID_SERVICO
+ORDER BY C.NOME;
+
+SELECT * FROM VISITAS_CLI;
+
+-- ÍNDICES --
+
+-- 3 índices para campos indicados com justificativa dentro do contexto das consultas formuladas na questão 3a.
+
+-- ÍNDICE CRIADO PARA OTIMIZAR A BUSCA DO FUNCIONÁRIO POIS O CAMPO EMAIL É CHAVE CANDIDATA POR GARANTIR UNICIDADE 
+CREATE INDEX INDEX_FUNCIONARIO ON FUNCIONARIO(email);
+
+-- ÍNDICE CRIADO PARA OTIMIZAR A BUSCA CASO HAJA CONFLITO COM NOMES IGUAIS, POIS CADA CLIENTE POSSUI UM TELEFONE ÚNICO
+CREATE INDEX INDEX_CLIENTE ON CLIENTE(telefone);
+
+-- ÍNDICE CRIADO PARA OTIMIZAR A BUSCA COM BASE NA CHAMADA DAS CHAVES ESTRANGEIRAS DA TABELA ATENDIMENTO
+CREATE INDEX INDEX_ATENDIMENTO ON ATENDIMENTO(id_func,id_cli);
+
+
+
+-- REESCRITA DE CONSULTAS --
+
+-- CONSULTA QUE RETORNA TODOS OS ATENDIMENTOS DO FUNCIONÁRIO CUJO NOME É 'Gabryel Araújo'
+/* 
+SELECT * FROM ATENDIMENTO
+WHERE ID_FUNC IN (
+	SELECT ID_FUNCIONARIO
+		FROM FUNCIONARIO
+		WHERE NOME LIKE 'Gabryel Araújo';
+);
+*/
+
+-- REESCRITA EFETUADA PARA OTIMIZAR O TEMPO DE EXECUÇÃO DA CONSULTA, UMA VEZ QUE NÃO HAVERÁ A NECESSIDADE DA EXECUÇÃO DE UMA CONSULTA EXTERNA PARA CHEGAR AO RESULTADO FINAL 
+
+SELECT * 
+FROM ATENDIMENTO A
+JOIN FUNCIONARIO F ON F.ID_FUNCIONARIO = A.ID_FUNC
+WHERE F.NOME LIKE 'Gabryel Araújo';
+
+-- CONSULTA QUE RETORNA OS ID'S DOS SERVIÇOS REALIZADOS NO MÊS DE DEZEMBRO
+/*
+SELECT ID_SERVICO 
+FROM ATENDSERVICO
+WHERE ID_ATENDIMENTO IN (
+    SELECT ID_ATENDIMENTO 
+    FROM ATENDIMENTO
+    WHERE EXTRACT(MONTH FROM DATA_ATEND) = 12
+);
+*/
+
+-- REESCRITA EFETUADA PARA OTIMIZAR O TEMPO DE EXECUÇÃO DA CONSULTA, UMA VEZ QUE NÃO HAVERÁ A NECESSIDADE DA EXECUÇÃO DE UMA CONSULTA EXTERNA PARA CHEGAR AO RESULTADO FINAL
+
+SELECT AD.ID_SERVICO
+FROM ATENDSERVICO AD
+JOIN ATENDIMENTO A ON A.ID_ATENDIMENTO = AD.ID_ATENDIMENTO
+WHERE EXTRACT(MONTH FROM A.DATA_ATEND) = 12;
