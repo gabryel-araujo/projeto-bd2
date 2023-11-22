@@ -170,18 +170,18 @@ SELECT F.NOME AS "Funcionário", A.DATA_ATEND, A.URL_RELATORIO
 	FROM ATENDIMENTO A JOIN
 	FUNCIONARIO F 
 	ON A.ID_FUNC = F.ID_FUNCIONARIO;
--- Consulta que retorna o nome do cliente e o nome do funcionário que o atendeu no dia 07/11/2023
+-- Consulta que retorna o nome do cliente e o nome do funcionário que o atendeu no dia 07/01/2023
 SELECT C.NOME AS "CLIENTE", F.NOME AS "ATENDIDO POR"
 	FROM ATENDIMENTO A JOIN
 	CLIENTE C ON C.ID_CLIENTE = A.ID_CLI
 	JOIN FUNCIONARIO F ON F.ID_FUNCIONARIO = A.ID_FUNC
-	WHERE A.DATA_ATEND = '07/11/2023';
--- Consulta que retorna o tipo de serviço que foi realizado no atendimento do dia 07/11/2023
+	WHERE A.DATA_ATEND = '07/01/2023';
+-- Consulta que retorna o tipo de serviço que foi realizado no atendimento do dia 07/01/2023
 SELECT S.TIPO
 	FROM SERVICO S
 	JOIN ATENDSERVICO ATS ON S.ID_SERVICO = ATS.ID_SERVICO
 	JOIN ATENDIMENTO A ON ATS.ID_ATENDIMENTO= A.ID_ATENDIMENTO
-	WHERE DATA_ATEND = '07/11/2023';
+	WHERE DATA_ATEND = '07/01/2023';
 
 -- 1 consulta com left/right/full outer join na cláusula FROM
 
@@ -431,7 +431,7 @@ CREATE TABLE log_operacoes (
 -- Trigger 1.1
 
 -- Criação da função de log para o funcionário
-CREATE OR REPLACE FUNCTION log_operacoes()
+CREATE OR REPLACE FUNCTION log_operacoes_func()
 RETURNS TRIGGER AS $$
 BEGIN
     IF (TG_OP = 'DELETE') THEN
@@ -451,13 +451,12 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-
 -- Criação do trigger para funcionário
 CREATE TRIGGER operacoes_funcionario
 AFTER INSERT OR UPDATE OR DELETE
 ON funcionario
 FOR EACH ROW
-
+EXECUTE FUNCTION log_operacoes_func();
 
 -- Trigger 1.2
 
@@ -547,9 +546,9 @@ EXECUTE FUNCTION valida_data_atendimento();
 
 -- Trigger 3
 
--- Essa trigger será acionada antes de uma inserção na tabela ATENDIMENTO e levantará uma exceção se a data do atendimento for anterior à data atual. Ajuste conforme necessário com base nos requisitos específicos.
+-- Essa trigger será acionada antes de uma inserção na tabela ATENDIMENTO e levantará uma exceção se a data do atendimento for anterior à data atual.
 
-CREATE OR REPLACE FUNCTION valida_formatoemail()
+CREATE OR REPLACE FUNCTION valida_formato_email()
 RETURNS TRIGGER AS $$
 BEGIN
     IF NEW.email IS NOT NULL AND NOT NEW.email ~ '^[a-zA-Z0-9.%-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$' THEN
@@ -566,4 +565,4 @@ ON funcionario
 FOR EACH ROW
 EXECUTE FUNCTION valida_formato_email();
 
--- a expressão regular '^[a-zA-Z0-9._%-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$' valida se o formato do e-mail é válido. Ela permite letras maiúsculas e minúsculas, números, pontos, hífens e porcentagens no nome do usuário, seguidos por um símbolo "@" e um domínio contendo letras, números e pontos, e uma extensão de domínio de 2 a 4 caracteres.
+-- a expressão regular valida se o formato do e-mail é válido.
