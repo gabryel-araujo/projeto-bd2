@@ -544,10 +544,11 @@ ON atendimento
 FOR EACH ROW
 EXECUTE FUNCTION valida_data_atendimento();
 
+SELECT * FROM ATENDIMENTO;
+INSERT INTO ATENDIMENTO VALUES(DEFAULT, 'http://example.com/relatorio111','22/10/2023',6,4);
+
 -- Trigger 3
-
--- Essa trigger será acionada antes de uma inserção na tabela ATENDIMENTO e levantará uma exceção se a data do atendimento for anterior à data atual.
-
+--A expressão regular abaixo valida se o formato do e-mail é válido.
 CREATE OR REPLACE FUNCTION valida_formato_email()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -558,11 +559,13 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Trigger para validar o formato do e-mail
+-- Trigger associado à tabela funcionario para validar o formato do e-mail antes de realizar operações de inserção ou atualização.
 CREATE TRIGGER trigger_valida_formato_email
 BEFORE INSERT OR UPDATE
 ON funcionario
 FOR EACH ROW
 EXECUTE FUNCTION valida_formato_email();
 
--- a expressão regular valida se o formato do e-mail é válido.
+SELECT * FROM FUNCIONARIO;
+--Teste que comprova o funcionamento do trigger que valida o email
+INSERT INTO FUNCIONARIO VALUES(DEFAULT,'Danillo Coelho', 'Programador', 'danilo.com' );
