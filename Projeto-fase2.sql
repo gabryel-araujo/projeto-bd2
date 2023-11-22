@@ -155,26 +155,28 @@ INSERT INTO ATENDSERVICO (id_servico, id_atendimento) VALUES
 
 SELECT * FROM ATENDSERVICO;
 
---CONSULTAS
+-- CONSULTAS --
 
 --1 consulta com uma tabela usando operadores básicos de filtro (e.g., IN, between, is null, etc).
+
+-- Consulta que retorna o nome e cargo de funcionários que possuem apenas o cargo de programador
 SELECT NOME, CARGO FROM FUNCIONARIO
 WHERE CARGO LIKE 'Programador';
 
 --3 consultas com inner JOIN na cláusula FROM (pode ser self join, caso o domínio indique esse uso).
 
---CONSULTA QUE RETORNA PARA CADA FUNCIONARIO A DATA DOS SEUS ATENDIMENTOS E O LINK DOS SEUS RELATORIOS
+-- Consulta que retorna para cada funcionário a data dos deus atendimentos e o link dos seus relatórios
 SELECT F.NOME AS "Funcionário", A.DATA_ATEND, A.URL_RELATORIO
 	FROM ATENDIMENTO A JOIN
 	FUNCIONARIO F 
 	ON A.ID_FUNC = F.ID_FUNCIONARIO;
---CONSULTA QUE RETORNE O NOME DO CLIENTE E O NOME DO FUNCIONARIO QUE O ATENDEU NO DIA 07-11-2023
+-- Consulta que retorna o nome do cliente e o nome do funcionário que o atendeu no dia 07/11/2023
 SELECT C.NOME AS "CLIENTE", F.NOME AS "ATENDIDO POR"
 	FROM ATENDIMENTO A JOIN
 	CLIENTE C ON C.ID_CLIENTE = A.ID_CLI
 	JOIN FUNCIONARIO F ON F.ID_FUNCIONARIO = A.ID_FUNC
 	WHERE A.DATA_ATEND = '07/11/2023';
---CONSULTA QUE RETORNA O TIPO DE SERVIÇO QUE FOI REALIZADO NO ATENDIMENTO DO DIA 07-11-2023
+-- Consulta que retorna o tipo de serviço que foi realizado no atendimento do dia 07/11/2023
 SELECT S.TIPO
 	FROM SERVICO S
 	JOIN ATENDSERVICO ATS ON S.ID_SERVICO = ATS.ID_SERVICO
@@ -182,6 +184,7 @@ SELECT S.TIPO
 	WHERE DATA_ATEND = '07/11/2023';
 
 -- 1 consulta com left/right/full outer join na cláusula FROM
+
 --Consulta que retorna todos os clientes independente de ter atendimento ou não
 SELECT NOME, A.DATA_ATEND
 	FROM CLIENTE C
@@ -189,6 +192,7 @@ SELECT NOME, A.DATA_ATEND
 	ON C.ID_CLIENTE = A.ID_CLI;
 
 -- 2 consultas usando Group By (e possivelmente o having)
+
 --Consulta que retorna a quantidade de cada tipo de serviço.
 SELECT S.TIPO, COUNT(*) AS "Quantidade"
 	FROM FUNCIONARIO F
@@ -197,12 +201,14 @@ SELECT S.TIPO, COUNT(*) AS "Quantidade"
 	JOIN ATENDSERVICO ATS ON ATS.ID_ATENDIMENTO = A.ID_ATENDIMENTO
 	JOIN SERVICO S ON ATS.ID_SERVICO = S.ID_SERVICO
 	GROUP BY S.TIPO;
+	
 --Consulta que retorna a quantidade de funcionários para cada cargo na empresa.
 SELECT CARGO, COUNT(*) AS "Quantidade"
 	FROM FUNCIONARIO
 	GROUP BY CARGO;
 
 --1 consulta usando alguma operação de conjunto (union, except ou intersect)
+
 --Consulta que retorna o cliente que não está na tabela de atendimento.
 SELECT C.NOME
 	FROM CLIENTE C
@@ -213,6 +219,7 @@ SELECT C.NOME
 	ON C.ID_CLIENTE = A.ID_CLI;
 
 --2 consultas que usem subqueries
+
 --Consulta que retorna todos os atendimentos do funcionário cujo nome é Gabryel Araújo
 SELECT * FROM ATENDIMENTO
 WHERE ID_FUNC IN (
@@ -229,6 +236,8 @@ WHERE ID_ATENDIMENTO IN (
     FROM ATENDIMENTO
     WHERE EXTRACT(MONTH FROM DATA_ATEND) = 12
 );
+
+-- Views --
 
 --view de funcionarios programadores que permite inserção
 CREATE OR REPLACE VIEW FUNC_PROG
@@ -249,7 +258,9 @@ VALUES (default, 'João', 'Programador', 'joao@email.com');
 SELECT * FROM FUNC_PROG;
 SELECT * FROM FUNCIONARIO;
 
---VIEW ROBUSTA 01
+-- 2 visões robustas (e.g., com vários joins) com justificativa semântica, de acordo com os requisitos da aplicação.
+
+-- View que retorna as visitas de cada funcionário
 CREATE OR REPLACE VIEW VISITAS_FUNC AS
 	SELECT F.NOME, F.CARGO, A.DATA_ATEND, S.TIPO
 	FROM ATENDIMENTO A
@@ -263,7 +274,7 @@ ORDER BY NOME;
 
 SELECT * FROM VISITAS_FUNC;
 
---VIEW ROBUSTA 02
+-- View que retorna todas as visitas realizadas pelos funcionários e seus respectivos clientes
 CREATE OR REPLACE VIEW VISITAS_CLI AS
 	SELECT C.NOME AS "Cliente", F.NOME AS "Funcionário", S.TIPO as "Serviço"
 	FROM ATENDIMENTO A
@@ -283,20 +294,20 @@ SELECT * FROM VISITAS_CLI;
 
 -- 3 índices para campos indicados com justificativa dentro do contexto das consultas formuladas na questão 3a.
 
--- ÍNDICE CRIADO PARA OTIMIZAR A BUSCA DO FUNCIONÁRIO POIS O CAMPO EMAIL É CHAVE CANDIDATA POR GARANTIR UNICIDADE 
+-- Índice criado para otimizar a busca do funcionário, pois o campo email é chave candidata por garantir unicidade 
 CREATE INDEX INDEX_FUNCIONARIO ON FUNCIONARIO(email);
 
--- ÍNDICE CRIADO PARA OTIMIZAR A BUSCA CASO HAJA CONFLITO COM NOMES IGUAIS, POIS CADA CLIENTE POSSUI UM TELEFONE ÚNICO
+-- Índice criado para otimizar a busca caso haja conflito com nomes iguais, pois cada cliente possui um telefone único
 CREATE INDEX INDEX_CLIENTE ON CLIENTE(telefone);
 
--- ÍNDICE CRIADO PARA OTIMIZAR A BUSCA COM BASE NA CHAMADA DAS CHAVES ESTRANGEIRAS DA TABELA ATENDIMENTO
+-- Índice criado para otimizar a busca com base na chamada das chaves estrangeiras da tabela
 CREATE INDEX INDEX_ATENDIMENTO ON ATENDIMENTO(id_func,id_cli);
 
 
 
 -- REESCRITA DE CONSULTAS --
 
--- CONSULTA QUE RETORNA TODOS OS ATENDIMENTOS DO FUNCIONÁRIO CUJO NOME É 'Gabryel Araújo'
+-- Consulta que retorna todos os atendimentos do funcionário cujo nome é Gabryel Araújo
 /* 
 SELECT * FROM ATENDIMENTO
 WHERE ID_FUNC IN (
@@ -306,14 +317,13 @@ WHERE ID_FUNC IN (
 );
 */
 
--- REESCRITA EFETUADA PARA OTIMIZAR O TEMPO DE EXECUÇÃO DA CONSULTA, UMA VEZ QUE NÃO HAVERÁ A NECESSIDADE DA EXECUÇÃO DE UMA CONSULTA EXTERNA PARA CHEGAR AO RESULTADO FINAL 
-
+-- Reescrita efetuada para otimizar o tempo de execução da consulta, uma vez que não haverá a necessidade da execução de uma consulta externa para chegar ao resultado final
 SELECT * 
 FROM ATENDIMENTO A
 JOIN FUNCIONARIO F ON F.ID_FUNCIONARIO = A.ID_FUNC
 WHERE F.NOME LIKE 'Gabryel Araújo';
 
--- CONSULTA QUE RETORNA OS ID'S DOS SERVIÇOS REALIZADOS NO MÊS DE DEZEMBRO
+-- Consulta que retorna os id's dos serviços realizados no mês de dezembro
 /*
 SELECT ID_SERVICO 
 FROM ATENDSERVICO
@@ -324,7 +334,7 @@ WHERE ID_ATENDIMENTO IN (
 );
 */
 
--- REESCRITA EFETUADA PARA OTIMIZAR O TEMPO DE EXECUÇÃO DA CONSULTA, UMA VEZ QUE NÃO HAVERÁ A NECESSIDADE DA EXECUÇÃO DE UMA CONSULTA EXTERNA PARA CHEGAR AO RESULTADO FINAL
+-- Reescrita efetuada para otimizar o tempo de execução da consulta, uma vez que não haverá a necessidade da execução de uma consulta externa para chegar ao resultado final
 
 SELECT AD.ID_SERVICO
 FROM ATENDSERVICO AD
@@ -332,6 +342,8 @@ JOIN ATENDIMENTO A ON A.ID_ATENDIMENTO = AD.ID_ATENDIMENTO
 WHERE EXTRACT(MONTH FROM A.DATA_ATEND) = 12;
 
 --1 função que use SUM, MAX, MIN, AVG ou COUNT
+
+-- Função que retorna o número total de visitas registradas na tabela ATENDIMENTO para um determinado mês de referência.
 CREATE OR REPLACE FUNCTION visitasMes(mesReferencia integer)
 RETURNS INTEGER
 AS $$
@@ -346,8 +358,13 @@ $$ LANGUAGE plpgsql;
 SELECT VISITASMES(12);
 
 --2 funções e 1 procedure com justificativa semântica, conforme os requisitos da aplicação
+
 SELECT * FROM FUNCIONARIO;
---função 01
+
+/*
+ Função que tem o objetivo de contar o número de funcionários que possuem o cargo de 'Técnico' na tabela FUNCIONARIO. 
+ Ela também verifica se o número total de técnicos é maior que 6 e, se for, levanta uma exceção indicando que o limite de 6 técnicos na equipe foi excedido. A função retorna o número total de técnicos
+*/
 CREATE OR REPLACE FUNCTION contar_tecnicos() 
 RETURNS INTEGER 
 AS $$
@@ -366,7 +383,7 @@ $$ LANGUAGE plpgsql;
 
 SELECT CONTAR_TECNICOS();
 
---função 02
+-- Função que retorna uma tabela com duas colunas: mes e quantidade. Ela conta o número de visitas na tabela ATENDIMENTO para três meses específicos fornecidos como parâmetros (mes1, mes2, mes3)
 CREATE OR REPLACE FUNCTION getVisitasTri(mes1 integer, mes2 integer, mes3 integer)
 RETURNS TABLE (mes integer, quantidade integer)
 AS $$
@@ -383,7 +400,7 @@ LANGUAGE plpgsql;
 
 SELECT * FROM getVisitasTri(9, 8, 11);
 
---PROCEDURE
+-- Procedure que insere um novo tipo de serviço na tabela SERVICO.
 CREATE OR REPLACE PROCEDURE INSERIR_SERVICO(
     NOVOTIPO VARCHAR(45)
 )
@@ -396,63 +413,11 @@ $$ LANGUAGE plpgsql;
 CALL INSERIR_SERVICO('Vistoria');
 SELECT * FROM SERVICO;
 
---trigger para logs de funcionarios
-CREATE TABLE log_funcionario (
-    id_log SERIAL NOT NULL,
-    id_funcionario_inserido INT NOT NULL,
-    data_insercao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (id_log),
-    FOREIGN KEY (id_funcionario_inserido) REFERENCES funcionario(id_funcionario)
-);
---tabela de log do funcionario
-CREATE OR REPLACE FUNCTION log_insert_funcionario()
-RETURNS TRIGGER AS $$
-BEGIN
-    INSERT INTO log_funcionario (id_funcionario_inserido, data_insercao) VALUES (NEW.id_funcionario, CURRENT_TIMESTAMP);
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
+-- 3 diferentes triggers com justificativa semântica, de acordo com os requisitos da aplicação.
 
-CREATE TRIGGER trigger_log_insert_funcionario
-AFTER INSERT
-ON funcionario
-FOR EACH ROW
-EXECUTE FUNCTION log_insert_funcionario();
+-- Conjunto de triggers (1.1, 1.2, 1.3) responsável por gerar logs das operações feitas nas principais tabelas do banco de dados (FUNCIONARIO, CLIENTE ,ATENDIMENTO)
 
-select * from funcionario;
-insert into funcionario values(default,'Danillo Coelho','Gestão','danillo.coelho@email.com');
-select * from log_funcionario;
-
--- Criação da tabela de log para cliente
-CREATE TABLE log_cliente (
-    id_log SERIAL NOT NULL,
-    id_cliente_inserido INT NOT NULL,
-    data_insercao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (id_log),
-    FOREIGN KEY (id_cliente_inserido) REFERENCES cliente(id_cliente)
-);
-
---trigger para cliente
-CREATE OR REPLACE FUNCTION log_cliente()
-RETURNS TRIGGER AS $$
-BEGIN
-    INSERT INTO log_cliente (id_cliente_inserido, data_insercao) VALUES (NEW.id_cliente, CURRENT_TIMESTAMP);
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER trigger_log_insert_cliente
-AFTER INSERT
-ON cliente
-FOR EACH ROW
-EXECUTE FUNCTION log_cliente();
-
-insert into cliente values(default, '988654432','Mario Virgullini');
-select * from log_cliente;
-select * from cliente;
-
---trigger 03
--- Criação da tabela de log
+-- Criação da tabela de log 
 CREATE TABLE log_operacoes (
     id_log SERIAL NOT NULL,
     tabela VARCHAR(255) NOT NULL,
@@ -462,7 +427,10 @@ CREATE TABLE log_operacoes (
     PRIMARY KEY (id_log)
 );
 
--- Criação da função genérica de log para o funcionario
+
+-- Trigger 1.1
+
+-- Criação da função de log para o funcionário
 CREATE OR REPLACE FUNCTION log_operacoes()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -482,7 +450,19 @@ BEGIN
     RETURN NULL;
 END;
 $$ LANGUAGE plpgsql;
---trigger para o cliente
+
+
+-- Criação do trigger para funcionário
+CREATE TRIGGER operacoes_funcionario
+AFTER INSERT OR UPDATE OR DELETE
+ON funcionario
+FOR EACH ROW
+
+
+-- Trigger 1.2
+
+
+-- Criação da função de log para o cliente
 CREATE OR REPLACE FUNCTION log_operacoes_cli()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -503,29 +483,87 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Criação do trigger genérico para Funcionario
-CREATE TRIGGER operacoes_funcionario
-AFTER INSERT OR UPDATE OR DELETE
-ON funcionario
-FOR EACH ROW
-EXECUTE FUNCTION log_operacoes();
 
--- Criação do trigger genérico para Cliente
+-- Criação do trigger para Cliente
 CREATE TRIGGER operacoes_cliente
 AFTER INSERT OR UPDATE OR DELETE
 ON cliente
 FOR EACH ROW
 EXECUTE FUNCTION log_operacoes_cli();
-select * from cliente;
 
---testes dos logs abaixo:
-update funcionario
-set cargo = 'Programador'
-where id_funcionario = 17;
-select * from log_operacoes;
 
-update cliente
-set telefone = '987482651'
-where id_cliente = 1;
-select * from log_operacoes;
+-- Trigger 1.3
 
+-- Criação da função de log para o Atendimento
+CREATE OR REPLACE FUNCTION log_operacoes_atend()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF (TG_OP = 'DELETE') THEN
+        INSERT INTO log_operacoes (tabela, operacao, id_registro, data_operacao)
+        VALUES (TG_TABLE_NAME, 'Delete', OLD.id_atendimento, CURRENT_TIMESTAMP);
+        RETURN OLD;
+    ELSIF (TG_OP = 'UPDATE') THEN
+        INSERT INTO log_operacoes (tabela, operacao, id_registro, data_operacao)
+        VALUES (TG_TABLE_NAME, 'Update', NEW.id_atendimento, CURRENT_TIMESTAMP);
+        RETURN NEW;
+    ELSIF (TG_OP = 'INSERT') THEN
+        INSERT INTO log_operacoes (tabela, operacao, id_registro, data_operacao)
+        VALUES (TG_TABLE_NAME, 'Insert', NEW.id_atendimento, CURRENT_TIMESTAMP);
+        RETURN NEW;
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+
+-- Criação do trigger para Atendimento
+CREATE TRIGGER operacoes_atendimento
+AFTER INSERT OR UPDATE OR DELETE
+ON atendimento
+FOR EACH ROW
+EXECUTE FUNCTION log_operacoes_atend();
+
+-- Trigger 2
+
+--Essa trigger impede a inserção de atendimentos com datas no passado na tabela ATENDIMENTO.
+
+-- Função para validar a data de atendimento
+CREATE OR REPLACE FUNCTION valida_data_atendimento()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF (NEW.data_atend < CURRENT_DATE) THEN
+        RAISE EXCEPTION 'A data do atendimento não pode ser no passado.';
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger para validar a data de atendimento
+CREATE TRIGGER trigger_valida_data_atendimento
+BEFORE INSERT
+ON atendimento
+FOR EACH ROW
+EXECUTE FUNCTION valida_data_atendimento();
+
+-- Trigger 3
+
+-- Essa trigger será acionada antes de uma inserção na tabela ATENDIMENTO e levantará uma exceção se a data do atendimento for anterior à data atual. Ajuste conforme necessário com base nos requisitos específicos.
+
+CREATE OR REPLACE FUNCTION valida_formatoemail()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.email IS NOT NULL AND NOT NEW.email ~ '^[a-zA-Z0-9.%-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$' THEN
+        RAISE EXCEPTION 'Formato de e-mail inválido: %', NEW.email;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger para validar o formato do e-mail
+CREATE TRIGGER trigger_valida_formato_email
+BEFORE INSERT OR UPDATE
+ON funcionario
+FOR EACH ROW
+EXECUTE FUNCTION valida_formato_email();
+
+-- a expressão regular '^[a-zA-Z0-9._%-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$' valida se o formato do e-mail é válido. Ela permite letras maiúsculas e minúsculas, números, pontos, hífens e porcentagens no nome do usuário, seguidos por um símbolo "@" e um domínio contendo letras, números e pontos, e uma extensão de domínio de 2 a 4 caracteres.
