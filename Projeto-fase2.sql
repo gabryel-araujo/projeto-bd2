@@ -55,7 +55,7 @@ CREATE TABLE ATENDSERVICO(
 	id_servico INTEGER NOT NULL,
 	id_atendimento INTEGER NOT NULL,
 	CONSTRAINT FK_ATEND FOREIGN KEY(id_atendimento) REFERENCES ATENDIMENTO,
-	CONSTRAINT FK_SERVICO FOREIGN KEY(id_servico) REFERENCES CLIENTE,
+	CONSTRAINT FK_SERVICO FOREIGN KEY(id_servico) REFERENCES SERVICO,
 	CONSTRAINT PK_ATENDSERV PRIMARY KEY(id_atendimento, id_servico)
 );
 
@@ -330,3 +330,202 @@ SELECT AD.ID_SERVICO
 FROM ATENDSERVICO AD
 JOIN ATENDIMENTO A ON A.ID_ATENDIMENTO = AD.ID_ATENDIMENTO
 WHERE EXTRACT(MONTH FROM A.DATA_ATEND) = 12;
+
+--1 função que use SUM, MAX, MIN, AVG ou COUNT
+CREATE OR REPLACE FUNCTION visitasMes(mesReferencia integer)
+RETURNS INTEGER
+AS $$
+DECLARE TOTAL INTEGER;
+BEGIN
+  SELECT COUNT(*) INTO TOTAL FROM ATENDIMENTO
+  WHERE EXTRACT(MONTH FROM data_atend) = mesReferencia;
+RETURN TOTAL;
+END
+$$ LANGUAGE plpgsql;
+
+SELECT VISITASMES(12);
+
+--2 funções e 1 procedure com justificativa semântica, conforme os requisitos da aplicação
+SELECT * FROM FUNCIONARIO;
+--função 01
+CREATE OR REPLACE FUNCTION contar_tecnicos() 
+RETURNS INTEGER 
+AS $$
+DECLARE
+    total_funcionarios INTEGER;
+BEGIN
+    SELECT COUNT(*) INTO total_funcionarios 
+	FROM FUNCIONARIO
+	WHERE CARGO LIKE 'Técnico';
+    IF total_funcionarios > 6 THEN
+        RAISE EXCEPTION 'Limite de 6 técnicos na equipe foi excedido';
+    END IF;
+    RETURN total_funcionarios;
+END;
+$$ LANGUAGE plpgsql;
+
+SELECT CONTAR_TECNICOS();
+
+--função 02
+CREATE OR REPLACE FUNCTION getVisitasTri(mes1 integer, mes2 integer, mes3 integer)
+RETURNS TABLE (mes integer, quantidade integer)
+AS $$
+BEGIN
+  RETURN QUERY
+  SELECT EXTRACT(MONTH FROM data_atend)::integer AS mes, COUNT(*)::integer AS quantidade
+  FROM atendimento
+  WHERE EXTRACT(MONTH FROM data_atend) IN (mes1, mes2, mes3)
+  GROUP BY mes
+  ORDER BY mes;
+END;
+$$
+LANGUAGE plpgsql;
+
+SELECT * FROM getVisitasTri(9, 8, 11);
+
+--PROCEDURE
+CREATE OR REPLACE PROCEDURE INSERIR_SERVICO(
+    NOVOTIPO VARCHAR(45)
+)
+AS $$
+BEGIN
+    INSERT INTO SERVICO(tipo) VALUES (NOVOTIPO);
+END;
+$$ LANGUAGE plpgsql;
+
+CALL INSERIR_SERVICO('Vistoria');
+SELECT * FROM SERVICO;
+
+--trigger para logs de funcionarios
+CREATE TABLE log_funcionario (
+    id_log SERIAL NOT NULL,
+    id_funcionario_inserido INT NOT NULL,
+    data_insercao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id_log),
+    FOREIGN KEY (id_funcionario_inserido) REFERENCES funcionario(id_funcionario)
+);
+--tabela de log do funcionario
+CREATE OR REPLACE FUNCTION log_insert_funcionario()
+RETURNS TRIGGER AS $$
+BEGIN
+    INSERT INTO log_funcionario (id_funcionario_inserido, data_insercao) VALUES (NEW.id_funcionario, CURRENT_TIMESTAMP);
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_log_insert_funcionario
+AFTER INSERT
+ON funcionario
+FOR EACH ROW
+EXECUTE FUNCTION log_insert_funcionario();
+
+select * from funcionario;
+insert into funcionario values(default,'Danillo Coelho','Gestão','danillo.coelho@email.com');
+select * from log_funcionario;
+
+-- Criação da tabela de log para cliente
+CREATE TABLE log_cliente (
+    id_log SERIAL NOT NULL,
+    id_cliente_inserido INT NOT NULL,
+    data_insercao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id_log),
+    FOREIGN KEY (id_cliente_inserido) REFERENCES cliente(id_cliente)
+);
+
+--trigger para cliente
+CREATE OR REPLACE FUNCTION log_cliente()
+RETURNS TRIGGER AS $$
+BEGIN
+    INSERT INTO log_cliente (id_cliente_inserido, data_insercao) VALUES (NEW.id_cliente, CURRENT_TIMESTAMP);
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_log_insert_cliente
+AFTER INSERT
+ON cliente
+FOR EACH ROW
+EXECUTE FUNCTION log_cliente();
+
+insert into cliente values(default, '988654432','Mario Virgullini');
+select * from log_cliente;
+select * from cliente;
+
+--trigger 03
+-- Criação da tabela de log
+CREATE TABLE log_operacoes (
+    id_log SERIAL NOT NULL,
+    tabela VARCHAR(255) NOT NULL,
+    operacao VARCHAR(10) NOT NULL,
+    id_registro INT,
+    data_operacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id_log)
+);
+
+-- Criação da função genérica de log para o funcionario
+CREATE OR REPLACE FUNCTION log_operacoes()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF (TG_OP = 'DELETE') THEN
+        INSERT INTO log_operacoes (tabela, operacao, id_registro, data_operacao)
+        VALUES (TG_TABLE_NAME, 'Delete', OLD.id_funcionario, CURRENT_TIMESTAMP);
+        RETURN OLD;
+    ELSIF (TG_OP = 'UPDATE') THEN
+        INSERT INTO log_operacoes (tabela, operacao, id_registro, data_operacao)
+        VALUES (TG_TABLE_NAME, 'Update', NEW.id_funcionario, CURRENT_TIMESTAMP);
+        RETURN NEW;
+    ELSIF (TG_OP = 'INSERT') THEN
+        INSERT INTO log_operacoes (tabela, operacao, id_registro, data_operacao)
+        VALUES (TG_TABLE_NAME, 'Insert', NEW.id_funcionario, CURRENT_TIMESTAMP);
+        RETURN NEW;
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+--trigger para o cliente
+CREATE OR REPLACE FUNCTION log_operacoes_cli()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF (TG_OP = 'DELETE') THEN
+        INSERT INTO log_operacoes (tabela, operacao, id_registro, data_operacao)
+        VALUES (TG_TABLE_NAME, 'Delete', OLD.id_cliente, CURRENT_TIMESTAMP);
+        RETURN OLD;
+    ELSIF (TG_OP = 'UPDATE') THEN
+        INSERT INTO log_operacoes (tabela, operacao, id_registro, data_operacao)
+        VALUES (TG_TABLE_NAME, 'Update', NEW.id_cliente, CURRENT_TIMESTAMP);
+        RETURN NEW;
+    ELSIF (TG_OP = 'INSERT') THEN
+        INSERT INTO log_operacoes (tabela, operacao, id_registro, data_operacao)
+        VALUES (TG_TABLE_NAME, 'Insert', NEW.id_cliente, CURRENT_TIMESTAMP);
+        RETURN NEW;
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Criação do trigger genérico para Funcionario
+CREATE TRIGGER operacoes_funcionario
+AFTER INSERT OR UPDATE OR DELETE
+ON funcionario
+FOR EACH ROW
+EXECUTE FUNCTION log_operacoes();
+
+-- Criação do trigger genérico para Cliente
+CREATE TRIGGER operacoes_cliente
+AFTER INSERT OR UPDATE OR DELETE
+ON cliente
+FOR EACH ROW
+EXECUTE FUNCTION log_operacoes_cli();
+select * from cliente;
+
+--testes dos logs abaixo:
+update funcionario
+set cargo = 'Programador'
+where id_funcionario = 17;
+select * from log_operacoes;
+
+update cliente
+set telefone = '987482651'
+where id_cliente = 1;
+select * from log_operacoes;
+
