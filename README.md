@@ -1,9 +1,9 @@
-<h1 align="center">💻 Banco de Dados para Gerenciamento de Atendimentos </h1>
+<h1 align="center">🎲 Banco de Dados para Gerenciamento de Atendimentos </h1>
 <p align="center">
-  <img alt="GitHub top language" src="https://img.shields.io/github/languages/top/gabryel-araujo/projeto-bd2?color=blue">
-  <img alt="GitHub repo size" src="https://img.shields.io/github/repo-size/gabryel-araujo/projeto-bd2?color=blue">
-  <img alt="GitHub last commit" src="https://img.shields.io/github/last-commit/gabryel-araujo/projeto-bd2?color=blue">
-  <img alt="GitHub license" src="https://img.shields.io/github/license/gabryel-araujo/projeto-bd2?color=blue"><img>
+  <img alt="GitHub top language" src="https://img.shields.io/github/languages/top/gabryel-araujo/projeto-bd2?color=black">
+  <img alt="GitHub repo size" src="https://img.shields.io/github/repo-size/gabryel-araujo/projeto-bd2?color=black">
+  <img alt="GitHub last commit" src="https://img.shields.io/github/last-commit/gabryel-araujo/projeto-bd2?color=black">
+  <img alt="GitHub license" src="https://img.shields.io/github/license/gabryel-araujo/projeto-bd2?color=black"><img>
 </p>
 
 <div align="center">
@@ -21,7 +21,13 @@
 </div>
 
 <div style="display: inline_block" ><br>
-  <h3>💻 Desenvolvedores</h3>
+    <h3>💻 Tecnologias e Ferramentas </h3>
+    <img alt="PostgreSQL" src="https://img.shields.io/badge/PostgreSQL-000000?style=for-the-badge&logo=postgresql&logoColor=white">
+    <img alt="MySQL" src="https://img.shields.io/badge/MySQL_Workbench-000000?style=for-the-badge&logo=mysql&logoColor=white">
+</div>
+
+<div style="display: inline_block" ><br>
+  <h3>🧑🏻‍💻 Desenvolvedores</h3>
   <a align="center" href="https://github.com/gabryel-araujo" target="_blank"><img  src="https://img.shields.io/badge/Gabryel_Araújo-000000?style=for-the-badge&logo=GitHub&logoColor=white" target="_blank"></a>
   <br>
   <a align="center" href="https://github.com/filipe-rds" target="_blank"><img  src="https://img.shields.io/badge/Filipe_Rodrigues-000000?style=for-the-badge&logo=GitHub&logoColor=white" target="_blank"></a>
