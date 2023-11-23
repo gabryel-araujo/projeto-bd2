@@ -22,7 +22,7 @@
 
 <div style="display: inline_block" ><br>
   <h3>💻 Desenvolvedores</h3>
-  <a align="center" href="https://github.com/gabryel-araujo" target="_blank"><img  src="https://img.shields.io/badge/Gabriel_Araújo-000000?style=for-the-badge&logo=GitHub&logoColor=white" target="_blank"></a>
+  <a align="center" href="https://github.com/gabryel-araujo" target="_blank"><img  src="https://img.shields.io/badge/Gabryel_Araújo-000000?style=for-the-badge&logo=GitHub&logoColor=white" target="_blank"></a>
   <br>
   <a align="center" href="https://github.com/filipe-rds" target="_blank"><img  src="https://img.shields.io/badge/Filipe_Rodrigues-000000?style=for-the-badge&logo=GitHub&logoColor=white" target="_blank"></a>
 </div>
