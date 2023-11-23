@@ -11,6 +11,11 @@
 </div>
 
 <div style="display: inline_block" ><br>
+    <h3>📜 Documentação </h3>
+    <a href="https://github.com/gabryel-araujo/projeto-bd2/blob/main/assets/Documenta%C3%A7%C3%A3o_Projeto_BD2.pdf">🔎 Clique aqui</a>
+</div>
+
+<div style="display: inline_block" ><br>
     <h3>📘 Objetivo</h3>
     <p>Construir um banco de dados que respeite as <a href="https://github.com/gabryel-araujo/projeto-bd2/blob/main/assets/Roteiro%20de%20projeto%20bd%20relacional%20vfinal.pdf">regras de negócio</a> estabelecidas previamente para o projeto.</p>
 </div>
